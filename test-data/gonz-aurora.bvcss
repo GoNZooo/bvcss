@@ -1,0 +1,61 @@
+clear = true
+background = "dark"
+
+Normal "ececec", "23212e"
+Comment "46f2f2"
+Statement "e12977"
+Include "c5e400"
+PreProc "c44"
+Delimiter "f967e7"
+Type "47f"
+Constant "5f9cff"
+String "ffb700"
+Function "c5e400"
+Identifier "88c"
+LineNr "444"
+DiffDelete "0a0a0a", "c00"
+DiffAdd "0a0a0a", "0c0"
+DiffChange "0a0a0a", "c0c"
+DiffText "000", "fff"
+ColorColumn "ececec", "33313e"
+CursorLine "ccc", "222"
+MatchParen "000", "c3c"
+Search "fff", "00a"
+Visual "000", "7b26cb"
+Folded "3a3", "555"
+FoldColumn "0a0", "333"
+Whitespace "404040"
+NonText "33313e"
+
+Todo "cc4" # NeomakeWarning is linked to this.
+
+# autocomplete menu
+Pmenu "fff", "444"
+PmenuSel "444", "fff"
+
+# Tree sitter
+@field Identifier
+@variable Identifier
+
+# ALE
+AleWarning Underlined
+AleError Underlined
+
+# Language specific
+
+##########
+# Elixir #
+##########
+elixirKeyword Statement
+elixirInclude elixirKeyword
+elixirModuleDefine elixirKeyword
+elixirPrivateDefine elixirKeyword
+elixirStructDefine elixirKeyword
+elixirBlock elixirKeyword
+elixirBlockDefinition elixirKeyword
+elixirDefine elixirKeyword
+elixirTupleDelimiter Delimiter
+elixirMapDelimiter Delimiter
+
+# OCaml #
+ocamlConstructor Type

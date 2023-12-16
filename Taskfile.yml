@@ -1,0 +1,26 @@
+version: 3
+
+tasks:
+  default:
+    cmds:
+      - task: test
+
+  test-parser:
+    cmds:
+      - odin test bvcss/parser -o:none -debug -out:bin/test-parser
+    sources:
+      - ./bvcss/parser/**/*.odin
+    aliases:
+      - th
+    generates:
+      - bin/test-parser
+    method: none
+
+  clean:
+    cmds:
+      - rm -rf ./bin
+    aliases:
+      - c
+    silent: true
+
+interval: 250ms
