@@ -2,6 +2,7 @@ package parser
 
 import "core:fmt"
 import "core:log"
+import "core:mem"
 import "core:strings"
 import "core:testing"
 
@@ -13,7 +14,12 @@ Hex_Color :: distinct string
 Color_Scheme :: struct {
 	clear:      bool,
 	background: Background,
-	highlights: map[Group_Name]Group_Color,
+	rules:      []Rule,
+}
+
+Rule :: struct {
+	name:  Group_Name,
+	color: Group_Color,
 }
 
 Group_Color :: union {
@@ -155,20 +161,33 @@ test_parse_background :: proc(t: ^testing.T) {
 	}
 }
 
-parse_highlight :: proc(
+parse_rule :: proc(
 	tokenizer: ^tokenization.Tokenizer,
 ) -> (
 	name: Group_Name,
 	color: Group_Color,
 	error: tokenization.Expectation_Error,
 ) {
-	name = parse_group_name(tokenizer) or_return
+	name, error = parse_group_name(tokenizer)
+	_, is_end_of_file := error.(tokenization.Unexpected_End_Of_File)
+	if is_end_of_file {
+		return name, color, error
+	}
 	tokenization.tokenizer_expect(tokenizer, tokenization.Colon{}) or_return
 	tokenization.tokenizer_skip_any_of(
 		tokenizer,
 		[]tokenization.Token{tokenization.Space{}, tokenization.Tab{}},
 	)
 	color = parse_group_color(tokenizer) or_return
+	tokenization.tokenizer_skip_any_of(
+		tokenizer,
+		[]tokenization.Token {
+			tokenization.Space{},
+			tokenization.Tab{},
+			tokenization.Newline{},
+			tokenization.Comment{},
+		},
+	)
 
 	return name, color, nil
 }
@@ -213,6 +232,182 @@ test_parse_group_name :: proc(t: ^testing.T) {
 		}
 	}
 
+}
+
+Parse_File_Error :: union {
+	tokenization.Expectation_Error,
+	mem.Allocator_Error,
+}
+
+clear_output_string :: `hi clear
+if version > 580
+    if exists("syntax_on")
+        syntax reset
+    endif
+endif
+`
+
+output_color_scheme :: proc(
+	color_scheme: Color_Scheme,
+	filename: string,
+	allocator := context.allocator,
+) -> (
+	output: string,
+	error: mem.Allocator_Error,
+) {
+	b: strings.Builder
+	strings.builder_init_none(&b, allocator) or_return
+
+	if color_scheme.clear {
+		strings.write_string(&b, clear_output_string)
+		strings.write_string(&b, "\n")
+	}
+
+	strings.write_string(&b, `if has("gui_running")` + "\n")
+	strings.write_string(&b, `    set background=`)
+	switch color_scheme.background {
+	case Background.Dark:
+		strings.write_string(&b, "dark")
+	case Background.Light:
+		strings.write_string(&b, "light")
+	case Background.None:
+		fmt.panicf("Unexpected background value: %v", color_scheme.background)
+	}
+	strings.write_string(&b, "\n")
+	strings.write_string(&b, `endif` + "\n\n")
+
+	for rule in color_scheme.rules {
+		name := rule.name
+		color := rule.color
+		switch c in color {
+		case Root_Color_Pair:
+			strings.write_string(&b, `exec("hi `)
+			strings.write_string(&b, string(name))
+			strings.write_string(&b, ` guifg=#`)
+			strings.write_string(&b, string(c.foreground))
+			if c.background != "" {
+				strings.write_string(&b, ` guibg=#`)
+				strings.write_string(&b, string(c.background))
+			}
+			strings.write_string(&b, ` gui=NONE cterm=NONE")`)
+
+		case Group_Name:
+			strings.write_string(&b, `exec("hi link `)
+			strings.write_string(&b, string(name))
+			strings.write_string(&b, ` `)
+			strings.write_string(&b, string(c))
+			strings.write_string(&b, `")`)
+		}
+
+		strings.write_string(&b, "\n")
+	}
+
+	return strings.to_string(b), nil
+}
+
+@(test, private = "package")
+test_output_color_scheme :: proc(t: ^testing.T) {
+	context.logger = log.create_console_logger()
+
+	test_file_path_01 :: "../../test-data/simple_01.bvcss"
+	expected_output_file_path_01 :: "../../test-data/simple_01.vim"
+	simple_test_file_01 :: #load(test_file_path_01, string)
+	expected_output_01 := #load(expected_output_file_path_01, string)
+
+	color_scheme, error := parse_file(simple_test_file_01, test_file_path_01)
+	testing.expect(t, error == nil, fmt.tprintf("unexpected error: %v", error))
+
+	output, output_error := output_color_scheme(color_scheme, test_file_path_01)
+	testing.expect(t, output_error == nil, fmt.tprintf("unexpected error: %v", error))
+
+	if output != expected_output_01 {
+		line := 0
+		last_newline_index := 0
+		for _, i in output {
+			c := output[i]
+			if c == '\n' {
+				line += 1
+				last_newline_index = i
+			}
+			if c != expected_output_01[i] {
+				entire_line := output[last_newline_index:i]
+				fmt.panicf(
+					"Output does not match expected output at line %d:\nOutput: '''\n%s\n'''\nExpected: '''\n%s\n'''\nLine: '%s'",
+					line,
+					output,
+					expected_output_01,
+					entire_line,
+				)
+			}
+		}
+	}
+}
+
+parse_file :: proc(
+	data, filename: string,
+	allocator := context.allocator,
+) -> (
+	color_scheme: Color_Scheme,
+	error: Parse_File_Error,
+) {
+	tokenizer := tokenization.tokenizer_create(data)
+
+	color_scheme.clear = parse_clear(&tokenizer) or_return
+	tokenization.tokenizer_skip_any_of(
+		&tokenizer,
+		[]tokenization.Token{tokenization.Space{}, tokenization.Newline{}, tokenization.Comment{}},
+	)
+	color_scheme.background = parse_background(&tokenizer) or_return
+	tokenization.tokenizer_skip_any_of(
+		&tokenizer,
+		[]tokenization.Token{tokenization.Space{}, tokenization.Newline{}, tokenization.Comment{}},
+	)
+
+	_rules := make([dynamic]Rule, 0) or_return
+	for {
+		rule_name, rule_color, rule_error := parse_rule(&tokenizer)
+		_, is_expected_token := rule_error.(tokenization.Expected_Token)
+		if is_expected_token {
+			break
+		}
+		append(&_rules, Rule{name = rule_name, color = rule_color})
+	}
+
+	color_scheme.rules = _rules[:]
+
+	return color_scheme, nil
+}
+
+@(test, private = "package")
+test_parse_file :: proc(t: ^testing.T) {
+	context.logger = log.create_console_logger()
+
+	test_file_path_01 :: "../../test-data/simple_01.bvcss"
+	simple_test_file_01 :: #load(test_file_path_01, string)
+
+	color_scheme, error := parse_file(simple_test_file_01, test_file_path_01)
+	testing.expect(t, error == nil, fmt.tprintf("unexpected error: %v", error))
+	testing.expect_value(t, color_scheme.clear, true)
+	testing.expect_value(t, color_scheme.background, Background.Dark)
+
+	expected_rules := []Rule {
+		Rule {
+			name = Group_Name("Normal"),
+			color = Root_Color_Pair {
+				foreground = Hex_Color("ececec"),
+				background = Hex_Color("23212e"),
+			},
+		},
+		Rule{name = Group_Name("Identifier"), color = Root_Color_Pair{foreground = "46f2f2"}},
+		Rule{name = Group_Name("@field"), color = Group_Name("Identifier")},
+		Rule{name = Group_Name("odinVariable"), color = Group_Name("Identifier")},
+	}
+	testing.expect_value(t, len(color_scheme.rules), len(expected_rules))
+	if len(color_scheme.rules) == len(expected_rules) {
+		for expectation, i in expected_rules {
+			testing.expect_value(t, color_scheme.rules[i], expectation)
+		}
+	}
 }
 
 parse_group_color :: proc(

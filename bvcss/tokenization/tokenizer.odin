@@ -37,6 +37,7 @@ Token :: union {
 	ExclamationPoint,
 	Asterisk,
 	Comment,
+	At,
 	Upper_Symbol,
 	Lower_Symbol,
 	String,
@@ -71,6 +72,7 @@ QuestionMark :: struct {}
 ExclamationPoint :: struct {}
 Asterisk :: struct {}
 Comment :: struct {}
+At :: struct {}
 
 Upper_Symbol :: struct {
 	value: string,
@@ -503,6 +505,11 @@ current :: proc(tokenizer: ^Tokenizer, modify: bool) -> (token: Token) {
 		tokenizer_copy.column += 1
 
 		return Asterisk{}
+	case '@':
+		tokenizer_copy.position += 1
+		tokenizer_copy.column += 1
+
+		return At{}
 	case '0' ..= '9':
 		float := read_float(&tokenizer_copy)
 		if float != nil {
