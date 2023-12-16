@@ -123,6 +123,7 @@ Expectation_Error :: union {
 	Expected_String,
 	Expected_End_Marker,
 	Expected_One_Of,
+	Unexpected_End_Of_File,
 }
 
 Expected_Token_Error :: union {
@@ -156,6 +157,10 @@ Expected_One_Of :: struct {
 	location: Location,
 }
 
+Unexpected_End_Of_File :: struct {
+	location: Location,
+}
+
 Location :: struct {
 	line:        int,
 	column:      int,
@@ -167,6 +172,12 @@ Location :: struct {
 // and `tokenizer_expect` variants to read tokens from a `Tokenizer`.
 tokenizer_create :: proc(source: string) -> Tokenizer {
 	return Tokenizer{source = source, line = 1}
+}
+
+tokenizer_location :: proc(tokenizer: ^Tokenizer) -> Location {
+	return(
+		Location{line = tokenizer.line, column = tokenizer.column, position = tokenizer.position} \
+	)
 }
 
 tokenizer_expect_exact :: proc(

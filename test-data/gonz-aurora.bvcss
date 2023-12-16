@@ -36,6 +36,7 @@ PmenuSel "444", "fff"
 # Tree sitter
 @field Identifier
 @variable Identifier
+lowercaseGroup Identifier
 
 # ALE
 AleWarning Underlined

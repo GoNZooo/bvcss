@@ -12,6 +12,7 @@ tasks:
       - ./bvcss/parser/**/*.odin
     aliases:
       - th
+    silent: true
     generates:
       - bin/test-parser
     method: none
