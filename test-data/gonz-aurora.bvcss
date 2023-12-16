@@ -1,5 +1,5 @@
 clear = true
-background = "dark"
+background = dark
 
 Normal "ececec", "23212e"
 Comment "46f2f2"
