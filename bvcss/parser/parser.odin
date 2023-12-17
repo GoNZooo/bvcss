@@ -249,7 +249,6 @@ endif
 
 output_color_scheme :: proc(
 	color_scheme: Color_Scheme,
-	filename: string,
 	allocator := context.allocator,
 ) -> (
 	output: string,
@@ -317,7 +316,7 @@ test_output_color_scheme :: proc(t: ^testing.T) {
 	color_scheme, error := parse_file(simple_test_file_01, test_file_path_01)
 	testing.expect(t, error == nil, fmt.tprintf("unexpected error: %v", error))
 
-	output, output_error := output_color_scheme(color_scheme, test_file_path_01)
+	output, output_error := output_color_scheme(color_scheme)
 	testing.expect(t, output_error == nil, fmt.tprintf("unexpected error: %v", error))
 
 	if output != expected_output_01 {
@@ -336,6 +335,39 @@ test_output_color_scheme :: proc(t: ^testing.T) {
 					line,
 					output,
 					expected_output_01,
+					entire_line,
+				)
+			}
+		}
+	}
+
+	gonz_aurora_test_file :: "../../test-data/gonz-aurora.bvcss"
+	gonz_aurora_output_file :: "../../test-data/gonz-aurora.vim"
+	gonz_aurora_bvcss_string :: #load(gonz_aurora_test_file, string)
+	expected_gonz_aurora_output := #load(gonz_aurora_output_file, string)
+
+	color_scheme, error = parse_file(gonz_aurora_bvcss_string, gonz_aurora_test_file)
+	testing.expect(t, error == nil, fmt.tprintf("unexpected error: %v", error))
+
+	output, output_error = output_color_scheme(color_scheme)
+	testing.expect(t, output_error == nil, fmt.tprintf("unexpected error: %v", error))
+
+	if output != expected_gonz_aurora_output {
+		line := 0
+		last_newline_index := 0
+		for _, i in output {
+			c := output[i]
+			if c == '\n' {
+				line += 1
+				last_newline_index = i
+			}
+			if c != expected_gonz_aurora_output[i] {
+				entire_line := output[last_newline_index:i]
+				fmt.panicf(
+					"Output does not match expected output at line %d:\nOutput: '''\n%s\n'''\nExpected: '''\n%s\n'''\nLine: '%s'",
+					line,
+					output,
+					expected_gonz_aurora_output,
 					entire_line,
 				)
 			}

@@ -5,6 +5,17 @@ tasks:
     cmds:
       - task: test
 
+  build_bvcss:
+    cmds:
+      - odin build bvcss -out:bin/bvcss -o:speed
+    sources:
+      - ./bvcss/**/*.odin
+    aliases:
+      - bb
+    silent: true
+    generates:
+      - bin/bvcss
+
   test-parser:
     cmds:
       - odin test bvcss/parser -o:none -debug -out:bin/test-parser
