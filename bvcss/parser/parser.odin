@@ -168,11 +168,7 @@ parse_rule :: proc(
 	color: Group_Color,
 	error: tokenization.Expectation_Error,
 ) {
-	name, error = parse_group_name(tokenizer)
-	_, is_end_of_file := error.(tokenization.Unexpected_End_Of_File)
-	if is_end_of_file {
-		return name, color, error
-	}
+	name = parse_group_name(tokenizer) or_return
 	tokenization.tokenizer_expect(tokenizer, tokenization.Colon{}) or_return
 	tokenization.tokenizer_skip_any_of(
 		tokenizer,
@@ -192,6 +188,8 @@ parse_rule :: proc(
 	return name, color, nil
 }
 
+group_name_end_markers := []string{":", "\n", "\r\n"}
+
 parse_group_name :: proc(
 	tokenizer: ^tokenization.Tokenizer,
 ) -> (
@@ -200,7 +198,7 @@ parse_group_name :: proc(
 ) {
 	name_string := tokenization.tokenizer_read_string_until(
 		tokenizer,
-		[]string{":", "\n", "\r\n"},
+		group_name_end_markers,
 	) or_return
 
 	return Group_Name(name_string), nil
@@ -397,11 +395,13 @@ parse_file :: proc(
 
 	_rules := make([dynamic]Rule, 0) or_return
 	for {
-		rule_name, rule_color, rule_error := parse_rule(&tokenizer)
-		_, is_expected_token := rule_error.(tokenization.Expected_Token)
-		if is_expected_token {
+		t := tokenization.tokenizer_peek(&tokenizer)
+		_, is_eof := t.(tokenization.EOF)
+		if is_eof {
 			break
 		}
+
+		rule_name, rule_color := parse_rule(&tokenizer) or_return
 		append(&_rules, Rule{name = rule_name, color = rule_color})
 	}
 

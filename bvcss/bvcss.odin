@@ -29,7 +29,7 @@ main :: proc() {
 
 	color_scheme, parse_error := parser.parse_file(data = string(file_data), filename = filename)
 	if parse_error != nil {
-		fmt.printf("Error parsing file: %s", parse_error)
+		fmt.printf("Error parsing file: %v", parse_error)
 
 		os.exit(1)
 	}

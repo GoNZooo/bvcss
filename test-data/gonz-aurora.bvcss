@@ -31,8 +31,8 @@ Todo: "cccc44"
 Pmenu: "ffffff", "444444"
 PmenuSel: "444444", "ffffff"
 
-@punctuation Delimiter
-@type Type
-@variable Identifier
-@parameter Identifier
-@function Function
+@punctuation: Delimiter
+@type: Type
+@variable: Identifier
+@parameter: Identifier
+@function: Function

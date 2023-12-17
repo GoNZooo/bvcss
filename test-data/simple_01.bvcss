@@ -7,4 +7,3 @@ Identifier: "46f2f2"
 # Tree sitter
 @field: Identifier
 odinVariable: Identifier
-
