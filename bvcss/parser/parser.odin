@@ -462,6 +462,18 @@ parse_group_color :: proc(
 		return Group_Name(t.value), nil
 	case tokenization.Upper_Symbol:
 		return Group_Name(t.value), nil
+	case tokenization.At:
+		string_value := tokenization.tokenizer_read_string_until(
+			tokenizer,
+			[]string{"\r\n", "\n"},
+		) or_return
+
+		with_at, concatenate_error := strings.concatenate([]string{"@", string_value})
+		if concatenate_error != nil {
+			fmt.panicf("Unexpected error concatenating strings: %v", concatenate_error)
+		}
+
+		return Group_Name(with_at), nil
 	case tokenization.String:
 		root_color_pair.foreground = Hex_Color(t.value)
 	case:
