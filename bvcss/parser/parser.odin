@@ -58,7 +58,7 @@ parse_clear :: proc(
 	return t.token.(tokenization.Boolean).value, nil
 }
 
-@(test, private = "package")
+@(test)
 test_parse_clear :: proc(t: ^testing.T) {
 	tokenizer := tokenization.tokenizer_create("clear = true")
 	clear, err := parse_clear(&tokenizer)
@@ -121,7 +121,7 @@ parse_background :: proc(
 		}
 }
 
-@(test, private = "package")
+@(test)
 test_parse_background :: proc(t: ^testing.T) {
 	tokenizer := tokenization.tokenizer_create("background = dark")
 	background, err := parse_background(&tokenizer)
@@ -204,7 +204,7 @@ parse_group_name :: proc(
 	return Group_Name(name_string), nil
 }
 
-@(test, private = "package")
+@(test)
 test_parse_group_name :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -302,7 +302,7 @@ output_color_scheme :: proc(
 	return strings.to_string(b), nil
 }
 
-@(test, private = "package")
+@(test)
 test_output_color_scheme :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -410,7 +410,7 @@ parse_file :: proc(
 	return color_scheme, nil
 }
 
-@(test, private = "package")
+@(test)
 test_parse_file :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -494,7 +494,7 @@ parse_group_color :: proc(
 	return root_color_pair, nil
 }
 
-@(test, private = "package")
+@(test)
 test_parse_group_color :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 

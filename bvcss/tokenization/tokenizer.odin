@@ -720,7 +720,7 @@ read_string :: proc(tokenizer: ^Tokenizer, quote_characters: string) -> (token: 
 	return String{value = string_contents}
 }
 
-@(test, private = "package")
+@(test)
 test_tokenize_empty :: proc(t: ^testing.T) {
 	tokenizer := tokenizer_create("")
 	count := 0
@@ -734,7 +734,7 @@ test_tokenize_empty :: proc(t: ^testing.T) {
 	testing.expect_value(t, tokenizer.index, 0)
 }
 
-@(test, private = "package")
+@(test)
 test_tokenize_integer :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -752,7 +752,7 @@ test_tokenize_integer :: proc(t: ^testing.T) {
 	testing.expect_value(t, ok, true)
 }
 
-@(test, private = "package")
+@(test)
 test_tokenize_float :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -770,7 +770,7 @@ test_tokenize_float :: proc(t: ^testing.T) {
 	testing.expect_value(t, ok, true)
 }
 
-@(test, private = "package")
+@(test)
 test_read_double_quoted_string :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -790,7 +790,7 @@ test_read_double_quoted_string :: proc(t: ^testing.T) {
 	testing.expect_value(t, rest_of_string, "")
 }
 
-@(test, private = "package")
+@(test)
 test_read_single_quoted_string :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -810,7 +810,7 @@ test_read_single_quoted_string :: proc(t: ^testing.T) {
 	testing.expect_value(t, rest_of_string, "")
 }
 
-@(test, private = "package")
+@(test)
 test_read_symbols :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -860,7 +860,7 @@ test_read_symbols :: proc(t: ^testing.T) {
 	testing.expect_value(t, token_count, len(expected_tokens))
 }
 
-@(test, private = "package")
+@(test)
 test_read_char :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -887,7 +887,7 @@ test_read_char :: proc(t: ^testing.T) {
 	testing.expect_value(t, token_count, 3)
 }
 
-@(test, private = "package")
+@(test)
 test_read_boolean :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -912,7 +912,7 @@ test_read_boolean :: proc(t: ^testing.T) {
 	testing.expect_value(t, token_count, len(expected_tokens))
 }
 
-@(test, private = "package")
+@(test)
 test_read_lower_symbol :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -936,7 +936,7 @@ test_read_lower_symbol :: proc(t: ^testing.T) {
 	testing.expect_value(t, token_count, len(expected_tokens))
 }
 
-@(test, private = "package")
+@(test)
 test_tokenizer_expect :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -971,7 +971,7 @@ test_tokenizer_expect :: proc(t: ^testing.T) {
 	)
 }
 
-@(test, private = "package")
+@(test)
 test_tokenizer_expect_exact :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
@@ -1012,7 +1012,7 @@ test_tokenizer_expect_exact :: proc(t: ^testing.T) {
 	)
 }
 
-@(test, private = "package")
+@(test)
 test_tokenizer_string_until :: proc(t: ^testing.T) {
 	context.logger = log.create_console_logger()
 
